@@ -1,0 +1,27 @@
+{
+  "name": "proyecto-cadiga",
+  "version": "1.0.0",
+  "description": "* **Juan Carlos Diaz Eguizs** - [eguizs](https://github.com/eguizs) * **Jose Angel Galaz Lagarda** - [joseGL1000](https://github.com/joseGL1000) * **Jose Mario Carrillo Campas** - [Joseca0815](https://github.com/Joseca0815)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Joseca0815/Proyecto-CADIGA.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Joseca0815/Proyecto-CADIGA/issues"
+  },
+  "homepage": "https://github.com/Joseca0815/Proyecto-CADIGA#readme",
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mysql2": "^3.22.4"
+  }
+}
