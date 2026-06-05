@@ -73,3 +73,228 @@ Para dar cumplimiento a los lineamientos arquitectónicos solicitados en la eval
 * **Skinny Controllers / Fat Models:** Los controladores de Express mantienen una estructura limpia y delgada, limitándose a recibir y responder las peticiones HTTP (req, res). Las validaciones complejas de datos, operaciones criptográficas e interacciones con la base de datos corresponden a los modelos.
 * **Uso de Validators:** Se implementan capas intermedias (Middlewares) encargadas de validar estructuralmente los datos de entrada (como formato estricto de correo electrónico y longitudes de contraseña) antes de permitir el acceso a las funciones del controlador.
 * **Historial de Commits Descriptivos:** El control de versiones sigue convenciones estandarizadas para mantener la trazabilidad y legibilidad en el repositorio de trabajo colaborativo.
+
+
+
+Documentación y pruebas
+# API REST de Usuarios - Infraestructura Multicontenedor y Control de Acceso Seguro
+
+Este repositorio contiene la arquitectura de servicios unificada para el sistema de gestión de usuarios, integrando una API REST construida en **Node.js (Express)** y un motor de base de datos relacional **MySQL**, orquestados de manera automatizada mediante contenedores independientes con Docker.
+
+---
+
+## 1. Características de Seguridad Implementadas
+
+Para cumplir con los estándares criptográficos requeridos, el sistema cuenta con dos capas esenciales de protección:
+* **Cifrado de Credenciales:** Las contraseñas se procesan en el Backend utilizando la librería `bcryptjs`, aplicando un algoritmo de hashing criptográfico unidireccional (Salts + Hash) antes de ingresar cualquier registro a la base de datos de manera persistente.
+* **Control de Acceso (JWT):** Las rutas críticas del CRUD y de consulta general están protegidas mediante un middleware de autenticación que intercepta las solicitudes y exige la validación de firmas digitales utilizando **JSON Web Tokens (JWT)**.
+
+---
+
+## 2. Requisitos Previos y Variables de Entorno
+
+Antes de inicializar la infraestructura, asegúrese de contar con:
+* **Docker Desktop** instalado (para entornos locales) o un espacio de trabajo activo en **GitHub Codespaces**.
+* Un archivo `.env` configurado en la raíz del proyecto con las siguientes variables de entorno:
+
+```env
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=secret_password
+DB_NAME=infraestructura_db
+JWT_SECRET=tu_clave_secreta_super_segura
+
+***Manual de Inicialización y Despliegue Único***
+Para compilar las dependencias del servidor, levantar los servicios en paralelo y asegurar un entorno limpio de residuos anteriores, ejecute los siguientes comandos en la terminal raíz:
+
+Detener y limpiar contenedores huérfanos previos:
+
+Bash
+docker compose down
+Construir imágenes personalizadas desde cero y encender la arquitectura:
+
+Bash
+docker compose up --build
+
+***Estructuración de la Base de Datos (MySQL)***
+Al inicializar los contenedores por primera vez, conéctese al puerto local 3306 utilizando su cliente SQL preferido (ej. la extensión MySQL Database Client en VS Code) e introduzca el siguiente script para dar de alta la tabla de registros protegidos:
+
+SQL
+USE infraestructura_db;
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    correo VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+# Suite de Pruebas Interactivas y Respuestas del Servidor (pruebas.http)
+
+Utilice la extensión **REST Client** de VS Code sobre este archivo estructurado para ejecutar las pruebas funcionales en el orden estricto indicado. A la derecha de cada petición se incluye el formato del JSON que responderá el servidor.
+
+## 1. EVIDENCIA 5.A: INTENTAR ACCEDER A LA RUTA PROTEGIDA SIN TOKEN
+
+**[READ GENERAL]** Esta petición debe ser rechazada por el middleware de seguridad.
+
+### HTTP
+
+```http
+GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios
+```
+
+### Respuesta esperada del servidor (JSON de error)
+
+```json
+{
+  "error": "Acceso denegado",
+  "detalles": "Falta el token de autorización en los encabezados."
+}
+```
+
+## 2. [CREATE] REGISTRAR UN USUARIO NUEVO (Encriptación con Bcrypt)
+
+Manda la contraseña en texto plano; el backend la hashea antes de ingresarla a MySQL.
+
+### HTTP
+
+```http
+POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios
+Content-Type: application/json
+
+{
+    "nombre": "Juan_Secret",
+    "correo": "seto@ejemplo.com",
+    "password": "mipassword_seguro"
+}
+```
+
+### Respuesta esperada del servidor (JSON de éxito)
+
+```json
+{
+  "id": 1,
+  "nombre": "Juan_Secret",
+  "correo": "seto@ejemplo.com",
+  "created_at": "2026-06-05T07:48:41.000Z"
+}
+```
+
+## 3. LOGIN EN EL BACKEND (Generación de Firma JWT Legítima)
+
+El backend validará los hashes y generará el token de acceso si las credenciales coinciden.
+
+### HTTP
+
+```http
+POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/api/login
+Content-Type: application/json
+
+{
+    "correo": "seto@ejemplo.com",
+    "password": "mipassword_seguro"
+}
+```
+
+### Respuesta esperada del servidor (JSON de éxito con token)
+
+```json
+{
+  "mensaje": "Autenticación exitosa",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiY29ycmVvIjoic2V0b0BlamVtcGxvLmNvbSJ9..."
+}
+```
+
+### Nota de error
+
+Si introduce una estructura incorrecta o faltan campos, el servidor responderá:
+
+```json
+{
+  "error": "Todos los campos son obligatorios"
+}
+```
+
+## 4. EVIDENCIA 5.B: [READ AUTORIZADO] ACCESO CON TOKEN JWT
+
+Reemplace el marcador de posición por el token generado en el paso anterior.
+
+### HTTP
+
+```http
+GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios
+Authorization: Bearer PEGAR_AQUÍ_EL_TOKEN_JWT
+```
+
+### Respuesta esperada del servidor (JSON con arreglo de usuarios)
+
+```json
+[
+  {
+    "id": 1,
+    "nombre": "Juan_Secret",
+    "correo": "seto@ejemplo.com",
+    "created_at": "2026-06-05T07:48:41.000Z"
+  }
+]
+```
+## 5. [UPDATE] ACTUALIZAR UN USUARIO EXISTENTE (Parte del CRUD)
+
+Cambie el número `/1` de la URL por el ID real que desea editar.
+
+### HTTP
+
+```http
+PUT https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/1
+Content-Type: application/json
+
+{
+    "nombre": "Juan_Secret Editado",
+    "correo": "seto_nuevo@ejemplo.com"
+}
+```
+
+### Respuesta esperada del servidor (JSON de éxito)
+
+```json
+{
+  "mensaje": "Usuario actualizado correctamente"
+}
+
+### Nota de error
+
+Si introduce un ID inválido o inexistente en MySQL, responderá:
+
+```json
+{
+  "error": "Usuario no encontrado"
+}
+```
+
+## 6. [DELETE] ELIMINAR UN USUARIO POR ID (Cierre del CRUD)
+
+Cambie el número `/1` del final por el ID real del registro que desea remover.
+
+### HTTP
+
+```http
+DELETE https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/1
+```
+
+### Respuesta esperada del servidor (JSON de éxito)
+
+```json
+{
+  "mensaje": "Usuario eliminado correctamente de la base de datos"
+}
+```
+
+# 4. Cierre del Segundo Pull Request (Parte 6)
+
+Una vez guardada la documentación en la rama, ejecuten los últimos comandos en su consola para subir y cerrar la Parte 6:
+
+```bash
+git add README.md
+git commit -m "docs: unificar manual completo de despliegue, comandos de docker, mysql, http y jsons de respuesta"
+git push origin feature/issue-6-documentacion-despliegue
+```
