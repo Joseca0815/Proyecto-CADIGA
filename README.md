@@ -289,11 +289,7 @@ DELETE https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/1
 }
 ```
 
-# 4. Cierre del Segundo Pull Request (Parte 6)
 
-Una vez guardada la documentación en la rama, ejecuten los últimos comandos en su consola para subir y cerrar la Parte 6:
-
-```bash
 git add README.md
 git commit -m "docs: unificar manual completo de despliegue, comandos de docker, mysql, http y jsons de respuesta"
 git push origin feature/issue-6-documentacion-despliegue
