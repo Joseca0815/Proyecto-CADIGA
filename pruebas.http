@@ -1,0 +1,25 @@
+POST https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios
+Content-Type: application/json
+
+{
+  "nombre": "Jose Mario",
+  "correo": "mario@ejemplo.com",
+  "password": "password123"
+}
+
+### Obtener todos los usuarios (GET)
+GET https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios
+
+### 3. Actualizar un usuario (PUT)
+PUT https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios/1
+Content-Type: application/json
+
+{
+    "nombre": "Jose Mario Editado",
+    "correo": "mario_nuevo@ejemplo.com"
+}
+
+###
+
+### 4. Eliminar un usuario (DELETE)
+DELETE https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios/1
