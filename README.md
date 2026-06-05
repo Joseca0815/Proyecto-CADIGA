@@ -1,7 +1,7 @@
 # Gestor de Infraestructura Web para Desarrollo
 
 ##  Integrantes del Equipo
-* **Juan Carlos Diaz Eguizs** - [eguizs](https://github.com/eguizs)
+* **Juan Carlos Diaz Eguis** - [eguizs](https://github.com/eguizs)
 * **Jose Angel Galaz Lagarda** - [joseGL1000](https://github.com/joseGL1000)
 * **Jose Mario Carrillo Campas** - [Joseca0815](https://github.com/Joseca0815)
 
