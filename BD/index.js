@@ -3,7 +3,8 @@ const cors = require('cors');
 require('dotenv').config();
 
 // DESESTRUCTURACIÓN: Extraemos directamente 'pool' del archivo db
-const { pool } = require('./db.js');
+const { pool } = require('./db'); 
+
 const app = express();
 app.use(cors());
 app.use(express.json());

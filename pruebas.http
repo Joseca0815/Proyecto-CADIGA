@@ -2,9 +2,9 @@ POST https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios
 Content-Type: application/json
 
 {
-  "nombre": "Jose Mario",
-  "correo": "mario@ejemplo.com",
-  "password": "password123"
+  "nombre": "Jose Limon",
+  "correo": "Limon@ejemplo.com",
+  "password": "password1212"
 }
 
 ### Obtener todos los usuarios (GET)
@@ -23,3 +23,52 @@ Content-Type: application/json
 
 ### 4. Eliminar un usuario (DELETE)
 DELETE https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios/1
+
+
+
+
+
+
+
+eguizs
+
+
+
+
+
+
+
+
+### EVIDENCIA 5.A: Probar el bloqueo del backend (DEBE DAR 401 UNAUTHORIZED)
+# Esta petición va al servidor de Node.js (crispy-barnacle) para ver cómo el middleware bloquea el acceso
+GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/
+
+###
+
+### 1. Intentar registrar un usuario nuevo en el Backend
+# Mandamos los datos a Node.js para que use Bcrypt antes de guardarlo en MySQL
+POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/
+Content-Type: application/json
+
+{
+    "nombre": "Juan_Secret",
+    "correo": "seto@ejemplo.com",
+    "password": "mipassword_seguro"
+}
+
+###
+
+#### LOGIN
+POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/api/login
+Content-Type: application/json
+
+{
+    "correo": "seto@ejemplo.com",
+    "password": "mipassword_seguro"
+}
+
+###
+
+### EVIDENCIA 5.B: Acceder a la ruta con el Token obtenido
+GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiY29ycmVvIjoic2V0b0BlamVtcGxvLmNvbSIsImlhdCI6MTc4MDY0NjI0MiwiZXhwIjoxNzgwNjQ5ODQyfQ.xmsHtJ9e67G-gqdHMD02qw2V-WgY7E8ZK7qb52zbNgE
