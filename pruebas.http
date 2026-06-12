@@ -1,11 +1,11 @@
 ### 1. Registrar usuario normal (SIN SEGURIDAD - APARTADO 2)
-POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios
+POST https://didactic-waffle-7vwwv6grxwv63rvgq-3000.app.github.dev/usuarios
 Content-Type: application/json
 
 {
-  "nombre": "Jossse EstoyartoJefe",
-  "correo": "sss@gmail.com",
-  "password": "ss111"
+  "nombre": "hola",
+  "correo": "hola@gmail.com",
+  "password": "123456"
 }
 
 ### 2. Obtener todos los usuarios normal (SIN SEGURIDAD - APARTADO 1)
@@ -32,13 +32,13 @@ DELETE https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuari
 GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/api/usuarios-protegidos
 
 ### 5.1 Intentar registrar un usuario nuevo Seguro (Bcrypt)
-POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/api/secure-register
+POST https://didactic-waffle-7vwwv6grxwv63rvgq-3000.app.github.dev/api/secure-register
 Content-Type: application/json
 
 {
-    "nombre": "Juan_Sicrititos",
-    "correo": "seto@ddddddssdds.com",
-    "password": "Contraseña_encrip"
+    "nombre": "balderrama",
+    "correo": "balderrama@gmail.com",
+    "password": "balde"
 }
 
 ### 5.2 LOGIN (Para obtener el Token)

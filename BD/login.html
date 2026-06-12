@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Seguro JWT</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f9; }
+        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button.logout { background: #dc3545; }
+        button.test { background: #28a745; }
+        #mensaje { margin-top: 15px; padding: 10px; border-radius: 4px; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Iniciar Sesión</h2>
+    
+    <div id="login-section">
+        <input type="email" id="correo" placeholder="correo@ejemplo.com" required>
+        <input type="password" id="password" placeholder="Tu contraseña" required>
+        <button onclick="iniciarSesion()">Login</button>
+    </div>
+
+    <div id="user-section" style="display: none;">
+        <h3 style="color: green;">¡Estás logueado!</h3>
+        <button class="test" onclick="probarRutaProtegida()">Probar Ruta Protegida (Evidencia 5.B)</button>
+        <button class="logout" onclick="cerrarSesion()">Logout</button>
+    </div>
+
+    <div id="mensaje"></div>
+</div>
+
+<script>
+    // PON TU URL REAL DE CODESPACES AQUÍ (Sin el / al final)
+    const URL_BACKEND = "https://didactic-waffle-7vwwv6grxwv63rvgq-3000.app.github.dev";
+
+    // Verificar si ya hay un token guardado al cargar la página
+    window.onload = () => {
+        if (localStorage.getItem('token')) {
+            mostrarPanelUsuario();
+        }
+    };
+
+    // ==========================================
+    // 1. FUNCIÓN DE LOGIN
+    // ==========================================
+    async function iniciarSesion() {
+        const correo = document.getElementById('correo').value;
+        const password = document.getElementById('password').value;
+
+        try {
+            const respuesta = await fetch(`${URL_BACKEND}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correo, password })
+            });
+
+            const data = await respuesta.json();
+
+            if (respuesta.ok) {
+                // GUARDAR EL TOKEN EN LA MEMORIA DEL NAVEGADOR
+                localStorage.setItem('token', data.token);
+                mostrarMensaje('Login exitoso', 'green');
+                mostrarPanelUsuario();
+            } else {
+                mostrarMensaje(data.error || 'Credenciales incorrectas', 'red');
+            }
+        } catch (error) {
+            mostrarMensaje('Error al conectar con el servidor', 'red');
+        }
+    }
+
+    // ==========================================
+    // 2. FUNCIÓN DE LOGOUT
+    // ==========================================
+    function cerrarSesion() {
+        // EL LOGOUT REAL: Borrar el token de la memoria
+        localStorage.removeItem('token');
+        
+        mostrarMensaje('Sesión cerrada correctamente', 'blue');
+        
+        // Volver a mostrar el formulario de login
+        document.getElementById('login-section').style.display = 'block';
+        document.getElementById('user-section').style.display = 'none';
+        
+        // Limpiar inputs
+        document.getElementById('correo').value = '';
+        document.getElementById('password').value = '';
+    }
+
+    // ==========================================
+    // 3. PROBAR RUTA CON EL TOKEN
+    // ==========================================
+    async function probarRutaProtegida() {
+        const token = localStorage.getItem('token');
+        
+        try {
+            const respuesta = await fetch(`${URL_BACKEND}/api/usuarios-protegidos`, {
+                method: 'GET',
+                headers: { 
+                    'Authorization': `Bearer ${token}` // INYECTAR EL TOKEN AQUÍ
+                }
+            });
+
+            const data = await respuesta.json();
+            
+            if (respuesta.ok) {
+                mostrarMensaje(`Éxito: ${data.mensaje}. Usuarios encontrados: ${data.usuarios.length}`, 'green');
+            } else {
+                mostrarMensaje(`Error: ${data.error}. Tu sesión expiró o el token es inválido.`, 'red');
+                cerrarSesion(); // Forzar logout si el token ya no sirve
+            }
+        } catch (error) {
+            mostrarMensaje('Error de conexión', 'red');
+        }
+    }
+
+    // Funciones de utilidad visual
+    function mostrarPanelUsuario() {
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('user-section').style.display = 'block';
+    }
+
+    function mostrarMensaje(texto, color) {
+        const divMensaje = document.getElementById('mensaje');
+        divMensaje.textContent = texto;
+        divMensaje.style.background = color === 'green' ? '#d4edda' : color === 'red' ? '#f8d7da' : '#cce5ff';
+        divMensaje.style.color = color === 'green' ? '#155724' : color === 'red' ? '#721c24' : '#004085';
+        divMensaje.style.display = 'block';
+        setTimeout(() => divMensaje.style.display = 'none', 4000);
+    }
+</script>
+
+</body>
+</html>
