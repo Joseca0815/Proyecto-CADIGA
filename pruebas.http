@@ -1,3 +1,4 @@
+### 1. Registrar usuario normal (SIN SEGURIDAD - APARTADO 2)
 POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios
 Content-Type: application/json
 
@@ -7,10 +8,10 @@ Content-Type: application/json
   "password": "ss111"
 }
 
-### Obtener todos los usuarios (GET)
-GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios
+### 2. Obtener todos los usuarios normal (SIN SEGURIDAD - APARTADO 1)
+GET https://didactic-waffle-7vwwv6grxwv63rvgq-3000.app.github.dev/usuarios
 
-### 3. Actualizar un usuario (PUT)
+### 3. Actualizar un usuario normal (SIN SEGURIDAD - APARTADO 3)
 PUT https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/5
 Content-Type: application/json
 
@@ -19,23 +20,19 @@ Content-Type: application/json
     "correo": "Saturnino@ejemplo.com"
 }
 
-###
+### 4. Eliminar un usuario normal (SIN SEGURIDAD - APARTADO 4)
+DELETE https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios/5
 
-### 4. Eliminar un usuario (DELETE)
-DELETE https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios/
+### =======================================================================
+### APARTADO 5: APARTADO DE SEGURIDAD obligatoria
+### =======================================================================
 
+### EVIDENCIA 5.A: Probar el bloqueo del backend (DARÁ 401 UNAUTHORIZED)
+# Esta petición va a la ruta protegida SIN token, por lo que va a fallar de inmediato.
+GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/api/usuarios-protegidos
 
-
-
-### EVIDENCIA 5.A: Probar el bloqueo del backend (DEBE DAR 401 UNAUTHORIZED)
-# Esta petición va al servidor de Node.js (crispy-barnacle) para ver cómo el middleware bloquea el acceso
-GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/
-
-###
-
-### 1. Intentar registrar un usuario nuevo en el Backend
-# Mandamos los datos a Node.js para que use Bcrypt antes de guardarlo en MySQL
-POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/
+### 5.1 Intentar registrar un usuario nuevo Seguro (Bcrypt)
+POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/api/secure-register
 Content-Type: application/json
 
 {
@@ -44,19 +41,16 @@ Content-Type: application/json
     "password": "Contraseña_encrip"
 }
 
-###
-
-#### LOGIN
-POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/api/login
+### 5.2 LOGIN (Para obtener el Token)
+POST https://didactic-waffle-7vwwv6grxwv63rvgq-3000.app.github.dev/api/login
 Content-Type: application/json
 
 {
-   "correo": "seto@ddddddssdds.com",
+    "correo": "seto@ddddddssdds.com",
     "password": "Contraseña_encrip"
 }
 
-###
-
-### EVIDENCIA 5.B: Acceder a la ruta con el Token obtenido
-GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTcsImNvcnJlbyI6InNldG9AZGRkZGRkc3NkZHMuY29tIiwiaWF0IjoxNzgxMjQ0OTU3LCJleHAiOjE3ODEyNDg1NTd9.znnueZI5SrWxgSD4Q7rBCE1DOJ1rsbyVfMThfJnmrE0
+### EVIDENCIA 5.B: Acceder a la ruta protegida con el Token obtenido del Login
+# (Pega aquí abajo el Token que te devuelva la petición de arriba)
+GET https://didactic-waffle-7vwwv6grxwv63rvgq-3000.app.github.dev/api/usuarios-protegidos
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTcsImNvcnJlbyI6InNldG9AZGRkZGRkc3NkZHMuY29tIiwiaWF0IjoxNzgxMjQ2OTQyLCJleHAiOjE3ODEyNTA1NDJ9.A-L79n9QQLRJsOB260EsSjlMXPyvu5WNwl9Ju7lKF6c
