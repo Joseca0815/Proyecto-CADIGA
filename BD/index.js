@@ -45,6 +45,14 @@ app.get('/', (req, res) => {
     res.json({ mensaje: "API lista para el CRUD de usuarios con seguridad híbrida" });
 });
 
+
+
+// Ruta para servir la interfaz visual del Login
+app.get('/login-vista', (req, res) => {
+    res.sendFile(__dirname + '/login.html');
+});
+
+
 // ==========================================================
 // APARTADOS 1, 2, 3, 4: CRUD TOTALMENTE PÚBLICO (SIN SEGURIDAD)
 // ==========================================================
@@ -132,7 +140,7 @@ app.post('/api/secure-register', async (req, res) => {
     }
 });
 
-// 5.2 Login (POST /api/login) -> Compara Bcrypt y genera JWT
+// 5.2 Login HÍBRIDO -> Compara texto plano O Bcrypt y genera JWT
 app.post('/api/login', async (req, res) => {
     const { correo, password } = req.body;
     if (!correo || !password) {
@@ -145,11 +153,26 @@ app.post('/api/login', async (req, res) => {
         }
 
         const usuario = rows[0];
-        const passwordValida = await bcrypt.compare(password, usuario.password);
+
+        // 1. PRIMER INTENTO: Verificamos si la contraseña coincide tal cual (Texto Plano)
+        let passwordValida = (password === usuario.password);
+
+        // 2. SEGUNDO INTENTO: Si no coincidió en texto plano, intentamos con Bcrypt (por si hay usuarios encriptados)
+        if (!passwordValida) {
+            try {
+                passwordValida = await bcrypt.compare(password, usuario.password);
+            } catch (bcryptError) {
+                // Si la contraseña en la BD no es un hash válido, bcrypt lanzará un error, lo atrapamos aquí
+                passwordValida = false;
+            }
+        }
+
+        // Si de ninguna de las dos formas funcionó, lo rechazamos
         if (!passwordValida) {
             return res.status(401).json({ error: "Credenciales incorrectas" });
         }
 
+        // Si pasó la validación, generamos su token como siempre
         const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ mensaje: "Login exitoso", token });
     } catch (error) {
@@ -173,4 +196,12 @@ app.get('/api/usuarios-protegidos', verificarToken, async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
+});
+// 5.4 Logout (Informativo)
+app.post('/api/logout', (req, res) => {
+    // Con JWT, el backend no destruye el token. 
+    // Le decimos al frontend que borre el token de su lado.
+    res.json({ 
+        mensaje: "Logout exitoso. Por favor, elimina el token en el cliente (Frontend)." 
+    });
 });
