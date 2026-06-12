@@ -1,40 +1,28 @@
-POST https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios
+POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios
 Content-Type: application/json
 
 {
-  "nombre": "Jose Limon",
-  "correo": "Limon@ejemplo.com",
-  "password": "password1212"
+  "nombre": "Jossse EstoyartoJefe",
+  "correo": "sss@gmail.com",
+  "password": "ss111"
 }
 
 ### Obtener todos los usuarios (GET)
-GET https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios
+GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios
 
 ### 3. Actualizar un usuario (PUT)
-PUT https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios/1
+PUT https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/5
 Content-Type: application/json
 
 {
-    "nombre": "Jose Mario Editado",
-    "correo": "mario_nuevo@ejemplo.com"
+    "nombre": "Saturnino",
+    "correo": "Saturnino@ejemplo.com"
 }
 
 ###
 
 ### 4. Eliminar un usuario (DELETE)
-DELETE https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios/1
-
-
-
-
-
-
-
-eguizs
-
-
-
-
+DELETE https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuarios/
 
 
 
@@ -51,9 +39,9 @@ POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/
 Content-Type: application/json
 
 {
-    "nombre": "Juan_Secret",
-    "correo": "seto@ejemplo.com",
-    "password": "mipassword_seguro"
+    "nombre": "Juan_Sicrititos",
+    "correo": "seto@ddddddssdds.com",
+    "password": "Contraseña_encrip"
 }
 
 ###
@@ -63,12 +51,12 @@ POST https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/api/login
 Content-Type: application/json
 
 {
-    "correo": "seto@ejemplo.com",
-    "password": "mipassword_seguro"
+   "correo": "seto@ddddddssdds.com",
+    "password": "Contraseña_encrip"
 }
 
 ###
 
 ### EVIDENCIA 5.B: Acceder a la ruta con el Token obtenido
 GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MSwiY29ycmVvIjoic2V0b0BlamVtcGxvLmNvbSIsImlhdCI6MTc4MDY0NjI0MiwiZXhwIjoxNzgwNjQ5ODQyfQ.xmsHtJ9e67G-gqdHMD02qw2V-WgY7E8ZK7qb52zbNgE
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTcsImNvcnJlbyI6InNldG9AZGRkZGRkc3NkZHMuY29tIiwiaWF0IjoxNzgxMjQ0OTU3LCJleHAiOjE3ODEyNDg1NTd9.znnueZI5SrWxgSD4Q7rBCE1DOJ1rsbyVfMThfJnmrE0
