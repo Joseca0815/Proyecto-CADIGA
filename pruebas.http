@@ -1,15 +1,15 @@
 ### 1. Registrar usuario normal (SIN SEGURIDAD - APARTADO 2)
-POST https://didactic-waffle-7vwwv6grxwv63rvgq-3000.app.github.dev/usuarios
+POST https://improved-space-invention-69ww9qjrprq4frvx9-3000.app.github.dev/usuarios
 Content-Type: application/json
 
 {
-  "nombre": "hola",
-  "correo": "hola@gmail.com",
+  "nombre": "log",
+  "correo": "prueba@gmail.com",
   "password": "123456"
 }
 
 ### 2. Obtener todos los usuarios normal (SIN SEGURIDAD - APARTADO 1)
-GET https://didactic-waffle-7vwwv6grxwv63rvgq-3000.app.github.dev/usuarios
+GET https://improved-space-invention-69ww9qjrprq4frvx9-3000.app.github.dev/usuarios
 
 ### 3. Actualizar un usuario normal (SIN SEGURIDAD - APARTADO 3)
 PUT https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/usuarios/5
@@ -32,7 +32,7 @@ DELETE https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuari
 GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/api/usuarios-protegidos
 
 ### 5.1 Intentar registrar un usuario nuevo Seguro (Bcrypt)
-POST https://didactic-waffle-7vwwv6grxwv63rvgq-3000.app.github.dev/api/secure-register
+POST https://improved-space-invention-69ww9qjrprq4frvx9-3000.app.github.dev/api/secure-register
 Content-Type: application/json
 
 {
@@ -54,3 +54,17 @@ Content-Type: application/json
 # (Pega aquí abajo el Token que te devuelva la petición de arriba)
 GET https://didactic-waffle-7vwwv6grxwv63rvgq-3000.app.github.dev/api/usuarios-protegidos
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTcsImNvcnJlbyI6InNldG9AZGRkZGRkc3NkZHMuY29tIiwiaWF0IjoxNzgxMjQ2OTQyLCJleHAiOjE3ODEyNTA1NDJ9.A-L79n9QQLRJsOB260EsSjlMXPyvu5WNwl9Ju7lKF6c
+
+
+### Enviar un Log Manual de Prueba (POST)
+POST http://127.0.0.1:3000/api/logs
+Content-Type: application/json
+
+{
+    "correo": "omar@gmail.com",
+    "accion": "login",
+    "resultado": "EXITOSO"
+}
+
+### Consultar los Logs (GET)
+GET http://127.0.0.1:3000/api/logs

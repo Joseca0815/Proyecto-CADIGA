@@ -193,6 +193,41 @@ app.get('/api/usuarios-protegidos', verificarToken, async (req, res) => {
     }
 });
 
+// =================================================================
+// ENDPOINTS PARA LA API REST DE LOGS DE ACCESO 
+// =================================================================
+
+// GET /api/logs -> Consultar todos los logs
+app.get('/api/logs', async (req, res) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM logs_acceso ORDER BY fecha DESC');
+        res.json({ mensaje: "Historial de logs obtenido con éxito", logs: rows });
+    } catch (error) {
+        res.status(500).json({ error: "Error al obtener los logs", detalles: error.message });
+    }
+});
+
+// POST /api/logs -> Insertar un log manualmente
+app.post('/api/logs', async (req, res) => {
+    const { correo, accion, resultado } = req.body;
+    if (!correo || !accion || !resultado) {
+        return res.status(400).json({ error: "Faltan campos obligatorios (correo, accion, resultado)" });
+    }
+    
+    // Captura la IP de quien hace la petición
+    const ipCliente = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+    
+    try {
+        await pool.execute('INSERT INTO logs_acceso (correo, accion, resultado, ip) VALUES (?, ?, ?, ?)', 
+            [correo, accion, resultado, ipCliente]);
+        res.status(201).json({ mensaje: "Log registrado de manera exitosa" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al insertar el log", detalles: error.message });
+    }
+});
+
+
+
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
