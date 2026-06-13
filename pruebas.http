@@ -36,8 +36,8 @@ POST https://improved-space-invention-69ww9qjrprq4frvx9-3000.app.github.dev/api/
 Content-Type: application/json
 
 {
-    "nombre": "balderrama",
-    "correo": "balderrama@gmail.com",
+    "nombre": "balderrama22",
+    "correo": "balderrama22@gmail.com",
     "password": "balde"
 }
 

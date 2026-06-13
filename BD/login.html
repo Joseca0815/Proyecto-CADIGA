@@ -45,34 +45,38 @@
         }
     };
 
-    // ==========================================
-    // 1. FUNCIÓN DE LOGIN
-    // ==========================================
-    async function iniciarSesion() {
-        const correo = document.getElementById('correo').value;
-        const password = document.getElementById('password').value;
+// =================================================================
+// 1. FUNCIÓN DE LOGIN (ACTUALIZADA CON REGISTRO DE LOGS)
+// =================================================================
+async function iniciarSesion() {
+    const correo = document.getElementById('correo').value;
+    const password = document.getElementById('password').value;
 
-        try {
-            const respuesta = await fetch(`${URL_BACKEND}/api/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ correo, password })
-            });
+    try {
+        const respuesta = await fetch(`${URL_BACKEND}/api/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo, password })
+        });
 
-            const data = await respuesta.json();
+        const data = await respuesta.json();
 
-            if (respuesta.ok) {
-                // GUARDAR EL TOKEN EN LA MEMORIA DEL NAVEGADOR
-                localStorage.setItem('token', data.token);
-                mostrarMensaje('Login exitoso', 'green');
-                mostrarPanelUsuario();
-            } else {
-                mostrarMensaje(data.error || 'Credenciales incorrectas', 'red');
-            }
-        } catch (error) {
-            mostrarMensaje('Error al conectar con el servidor', 'red');
+        if (respuesta.ok) {
+            // 🟢 GUARDAR EL TOKEN EN LA MEMORIA DEL NAVEGADOR
+            localStorage.setItem('token', data.token);
+            
+            // 🔥 NUEVO: Guardamos el correo actual para poder registrar el logout después
+            localStorage.setItem('correoActual', correo);
+
+            mostrarMensaje('Login exitoso', 'green');
+            mostrarPanelUsuario();
+        } else {
+            mostrarMensaje(data.error || 'Credenciales incorrectas', 'red');
         }
+    } catch (error) {
+        mostrarMensaje('Error al conectar con el servidor', 'red');
     }
+}
 
     // ==========================================
     // 2. FUNCIÓN DE LOGOUT
@@ -133,6 +137,43 @@
         divMensaje.style.display = 'block';
         setTimeout(() => divMensaje.style.display = 'none', 4000);
     }
+
+// =================================================================
+// LOGIC PARA EL BOTÓN DE LOGOUT (VERSIÓN SÍNCRONA OBLIGATORIA)
+// =================================================================
+const botonLogout = document.querySelector('.logout');
+
+if (botonLogout) {
+    // Le agregamos 'async' a la función del click
+    botonLogout.addEventListener('click', async (e) => {
+        // Evita que la página haga cosas raras o se recargue antes de tiempo
+        e.preventDefault(); 
+
+        const correoUsuario = localStorage.getItem('correoActual') || 'balderrama@gma';
+
+        try {
+            // EL AWAIT AQUÍ ES CLAVE: Detiene el código hasta que el backend inserte el log
+            const respuesta = await fetch(`${URL_BACKEND}/api/logout`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correo: correoUsuario })
+            });
+
+            const resultadoJson = await respuesta.json();
+            console.log('Servidor respondió:', resultadoJson);
+
+        } catch (error) {
+            console.error('Error al registrar log de logout:', error);
+        }
+
+        // RECIÉN CUANDO EL SERVIDOR CONTESTA, limpiamos la sesión y reiniciamos
+        localStorage.clear();
+        alert('Sesión cerrada con éxito');
+        window.location.reload();
+    });
+}
+
+
 </script>
 
 </body>

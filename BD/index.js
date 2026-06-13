@@ -140,15 +140,24 @@ app.post('/api/secure-register', async (req, res) => {
     }
 });
 
-// 5.2 Login HÍBRIDO -> Compara texto plano O Bcrypt y genera JWT
+
 app.post('/api/login', async (req, res) => {
     const { correo, password } = req.body;
+    // Captura la IP de quien intenta loguearse
+    const ipCliente = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+
     if (!correo || !password) {
         return res.status(400).json({ error: "Correo y contraseña requeridos" });
     }
+
     try {
         const [rows] = await pool.execute('SELECT * FROM usuarios WHERE correo = ?', [correo]);
+        
+        // 🚨 CASO 1: El usuario no existe en la base de datos
         if (rows.length === 0) {
+            await pool.execute('INSERT INTO logs_acceso (correo, accion, resultado, ip) VALUES (?, ?, ?, ?)', 
+                [correo, 'login', 'FALLIDO', ipCliente]);
+
             return res.status(401).json({ error: "Credenciales incorrectas" });
         }
 
@@ -157,26 +166,32 @@ app.post('/api/login', async (req, res) => {
         // 1. PRIMER INTENTO: Verificamos si la contraseña coincide tal cual (Texto Plano)
         let passwordValida = (password === usuario.password);
 
-        // 2. SEGUNDO INTENTO: Si no coincidió en texto plano, intentamos con Bcrypt (por si hay usuarios encriptados)
+        // 2. SEGUNDO INTENTO: Si no coincidió en texto plano, intentamos con Bcrypt
         if (!passwordValida) {
             try {
                 passwordValida = await bcrypt.compare(password, usuario.password);
             } catch (bcryptError) {
-                // Si la contraseña en la BD no es un hash válido, bcrypt lanzará un error, lo atrapamos aquí
                 passwordValida = false;
             }
         }
 
-        // Si de ninguna de las dos formas funcionó, lo rechazamos
+        // 🚨 CASO 2: La contraseña no fue válida (Login Fallido)
         if (!passwordValida) {
+            await pool.execute('INSERT INTO logs_acceso (correo, accion, resultado, ip) VALUES (?, ?, ?, ?)', 
+                [correo, 'login', 'FALLIDO', ipCliente]);
+
             return res.status(401).json({ error: "Credenciales incorrectas" });
         }
 
-        // Si pasó la validación, generamos su token como siempre
-        const token = jwt.sign({ id: usuario.id, correo: usuario.correo }, JWT_SECRET, { expiresIn: '1h' });
-        res.json({ mensaje: "Login exitoso", token });
+        // 🟢 CASO 3: Todo salió bien (Login Exitoso)
+        await pool.execute('INSERT INTO logs_acceso (correo, accion, resultado, ip) VALUES (?, ?, ?, ?)', 
+            [correo, 'login', 'EXITOSO', ipCliente]);
+
+        // Aquí puedes generar tu JWT o respuesta de éxito normal
+        res.json({ mensaje: "¡Inicio de sesión correcto!", usuario: { nombre: usuario.nombre, correo: usuario.correo } });
+
     } catch (error) {
-        res.status(500).json({ error: "Error en el login", detalles: error.message });
+        res.status(500).json({ error: "Error en el servidor", detalles: error.message });
     }
 });
 
@@ -232,11 +247,22 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 Servidor corriendo en el puerto ${PORT}`);
 });
-// 5.4 Logout (Informativo)
-app.post('/api/logout', (req, res) => {
-    // Con JWT, el backend no destruye el token. 
-    // Le decimos al frontend que borre el token de su lado.
-    res.json({ 
-        mensaje: "Logout exitoso. Por favor, elimina el token en el cliente (Frontend)." 
-    });
+
+
+app.post('/api/logout', async (req, res) => {
+    const { correo } = req.body; // El frontend debería enviar el correo del usuario que cierra sesión
+    const ipCliente = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+
+    try {
+        if (correo) {
+            // 🟢 GUARDAR LOG DE LOGOUT
+            await pool.execute(
+                'INSERT INTO logs_acceso (correo, accion, resultado, ip) VALUES (?, ?, ?, ?)', 
+                [correo, 'logout', 'EXITOSO', ipCliente]
+            );
+        }
+        res.json({ mensaje: "Sesión cerrada correctamente" });
+    } catch (error) {
+        res.status(500).json({ error: "Error al registrar salida", detalles: error.message });
+    }
 });
