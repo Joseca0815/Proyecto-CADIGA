@@ -3,178 +3,182 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Seguro JWT</title>
+    <title>Acceso al Sistema</title>
     <style>
-        body { font-family: Arial, sans-serif; padding: 20px; background: #f4f4f9; }
-        .container { max-width: 400px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        input, button { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; cursor: pointer; border-radius: 4px; }
-        button.logout { background: #dc3545; }
-        button.test { background: #28a745; }
-        #mensaje { margin-top: 15px; padding: 10px; border-radius: 4px; display: none; }
+        body { font-family: 'Arial', sans-serif; background-color: #f4f6f9; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; box-sizing: border-box; }
+        h2 { text-align: center; color: #333; margin-bottom: 24px; }
+        .form-group { margin-bottom: 16px; }
+        label { display: block; margin-bottom: 6px; color: #666; font-size: 14px; }
+        input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 12px; background-color: #007bff; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        .link-action { text-align: center; margin-top: 15px; font-size: 13px; }
+        .link-action a { color: #007bff; text-decoration: none; cursor: pointer; }
+        .link-action a:hover { text-decoration: underline; }
+        .hidden { display: none; }
+        .message { margin-top: 15px; padding: 10px; border-radius: 4px; font-size: 14px; text-align: center; display: none; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2>Iniciar Sesión</h2>
-    
-    <div id="login-section">
-        <input type="email" id="correo" placeholder="correo@ejemplo.com" required>
-        <input type="password" id="password" placeholder="Tu contraseña" required>
-        <button onclick="iniciarSesion()">Login</button>
+    <div id="msgBox" class="message"></div>
+
+    <div id="loginSection">
+        <h2>Iniciar Sesión</h2>
+<form id="loginForm" onsubmit="event.preventDefault(); ejecutarLogin();">            
+    <div class="form-group">
+                <label>Correo Electrónico</label>
+                <input type="email" id="loginEmail" required placeholder="correo@ejemplo.com">
+            </div>
+            <div class="form-group">
+                <label>Contraseña</label>
+                <input type="password" id="loginPassword" required placeholder="********">
+            </div>
+            <button type="submit">Ingresar</button>
+        </form>
+        <div class="link-action">
+            <a onclick="toggleForm(true)">¿Olvidaste tu contraseña?</a>
+        </div>
     </div>
 
-    <div id="user-section" style="display: none;">
-        <h3 style="color: green;">¡Estás logueado!</h3>
-        <button class="test" onclick="probarRutaProtegida()">Probar Ruta Protegida (Evidencia 5.B)</button>
-        <button class="logout" onclick="cerrarSesion()">Logout</button>
-    </div>
+    <div id="recoverySection" class="hidden">
+        <h2>Recuperar Contraseña</h2>
+        
+        <div id="stepRequest">
+            <div class="form-group">
+                <label>Tu Correo Registrado</label>
+                <input type="email" id="recoveryEmail" placeholder="correo@ejemplo.com">
+            </div>
+            <button type="button" onclick="actionRequestToken()">Solicitar Código</button>
+        </div>
 
-    <div id="mensaje"></div>
+        <div id="stepReset" class="hidden" style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 15px;">
+            <div class="form-group">
+                <label>Código de Verificación (6 dígitos)</label>
+                <input type="text" id="recoveryToken" maxlength="6" placeholder="123456">
+            </div>
+            <div class="form-group">
+                <label>Nueva Contraseña</label>
+                <input type="password" id="newPassword" placeholder="Escribe tu nueva contraseña">
+            </div>
+            <button type="button" onclick="actionResetPassword()">Cambiar Contraseña</button>
+        </div>
+
+        <div class="link-action">
+            <a onclick="toggleForm(false)" style="color: #6c757d;">Volver al Login</a>
+        </div>
+    </div>
 </div>
 
 <script>
-    // PON TU URL REAL DE CODESPACES AQUÍ (Sin el / al final)
-    const URL_BACKEND = "https://literate-space-guide-q76qvxvw99673xgpj-3000.app.github.dev";
+    const msgBox = document.getElementById('msgBox');
 
-    // Verificar si ya hay un token guardado al cargar la página
-    window.onload = () => {
-        if (localStorage.getItem('token')) {
-            mostrarPanelUsuario();
+    function notify(text, success = false) {
+        msgBox.textContent = text;
+        msgBox.className = `message ${success ? 'success' : 'error'}`;
+        msgBox.style.display = 'block';
+    }
+
+    function toggleForm(showRecovery) {
+        msgBox.style.display = 'none';
+        document.getElementById('loginSection').classList.toggle('hidden', showRecovery);
+        document.getElementById('recoverySection').classList.toggle('hidden', !showRecovery);
+    }
+
+    // DISPARADOR VISUAL DEL ISSUE 3
+    async function actionRequestToken() {
+        const correo = document.getElementById('recoveryEmail').value;
+        if (!correo) return notify("Ingresa un correo válido.");
+
+        try {
+            const res = await fetch('/api/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correo })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                notify("Código enviado. Búscalo abajo en la terminal de Docker.", true);
+                document.getElementById('stepReset').classList.remove('hidden'); // Muestra los campos para cambiar contraseña
+            } else {
+                notify(data.error || "Error al procesar");
+            }
+        } catch {
+            notify("No hay comunicación con el backend.");
         }
-    };
+    }
 
-// =================================================================
-// 1. FUNCIÓN DE LOGIN (ACTUALIZADA CON REGISTRO DE LOGS)
-// =================================================================
-async function iniciarSesion() {
-    const correo = document.getElementById('correo').value;
-    const password = document.getElementById('password').value;
+    // DISPARADOR VISUAL DEL ISSUE 4
+    async function actionResetPassword() {
+        const correo = document.getElementById('recoveryEmail').value;
+        const token = document.getElementById('recoveryToken').value;
+        const nuevaPassword = document.getElementById('newPassword').value;
+
+        if (!token || !nuevaPassword) return notify("Faltan datos por rellenar.");
+
+        try {
+            const res = await fetch('/api/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ correo, token, nuevaPassword })
+            });
+            const data = await res.json();
+
+            if (res.ok) {
+                notify("¡Contraseña actualizada con éxito! Redirigiendo...", true);
+                setTimeout(() => {
+                    // Limpia campos y regresa
+                    document.getElementById('recoveryEmail').value = '';
+                    document.getElementById('recoveryToken').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('stepReset').classList.add('hidden');
+                    toggleForm(false);
+                }, 2500);
+            } else {
+                notify(data.error || "Código erróneo");
+            }
+        } catch {
+            notify("Error al actualizar.");
+        }
+    }
+    async function ejecutarLogin() {
+    const correo = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+
+    if (!correo || !password) {
+        return notify("Por favor, rellena todos los campos.");
+    }
 
     try {
-        const respuesta = await fetch(`${URL_BACKEND}/api/login`, {
+        const res = await fetch('/api/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ correo, password })
         });
+        const data = await res.json();
 
-        const data = await respuesta.json();
+   if (res.ok) {
+            notify("¡Inicio de sesión exitoso! Redirigiendo al panel...", true);
 
-        if (respuesta.ok) {
-            // 🟢 GUARDAR EL TOKEN EN LA MEMORIA DEL NAVEGADOR
-            localStorage.setItem('token', data.token);
-            
-            // 🔥 NUEVO: Guardamos el correo actual para poder registrar el logout después
-            localStorage.setItem('correoActual', correo);
+            // 🌟 NUEVA LÍNEA: Guarda el correo para que el logout sepa quién está saliendo
+            localStorage.setItem('correoUsuario', correo);
 
-            mostrarMensaje('Login exitoso', 'green');
-            mostrarPanelUsuario();
+            // Espera 1.5 segundos para que alcances a ver la alerta verde y te redirige
+            setTimeout(() => {
+                window.location.href = "dashboard.html";
+            }, 1500);
         } else {
-            mostrarMensaje(data.error || 'Credenciales incorrectas', 'red');
+            notify(data.error || "Credenciales incorrectas. Intenta de nuevo.");
         }
-    } catch (error) {
-        mostrarMensaje('Error al conectar con el servidor', 'red');
+    } catch (err) {
+        notify("Error crítico: No se pudo conectar con el servidor de autenticación.");
     }
 }
-
-    // ==========================================
-    // 2. FUNCIÓN DE LOGOUT
-    // ==========================================
-    function cerrarSesion() {
-        // EL LOGOUT REAL: Borrar el token de la memoria
-        localStorage.removeItem('token');
-        
-        mostrarMensaje('Sesión cerrada correctamente', 'blue');
-        
-        // Volver a mostrar el formulario de login
-        document.getElementById('login-section').style.display = 'block';
-        document.getElementById('user-section').style.display = 'none';
-        
-        // Limpiar inputs
-        document.getElementById('correo').value = '';
-        document.getElementById('password').value = '';
-    }
-
-    // ==========================================
-    // 3. PROBAR RUTA CON EL TOKEN
-    // ==========================================
-    async function probarRutaProtegida() {
-        const token = localStorage.getItem('token');
-        
-        try {
-            const respuesta = await fetch(`${URL_BACKEND}/api/usuarios-protegidos`, {
-                method: 'GET',
-                headers: { 
-                    'Authorization': `Bearer ${token}` // INYECTAR EL TOKEN AQUÍ
-                }
-            });
-
-            const data = await respuesta.json();
-            
-            if (respuesta.ok) {
-                mostrarMensaje(`Éxito: ${data.mensaje}. Usuarios encontrados: ${data.usuarios.length}`, 'green');
-            } else {
-                mostrarMensaje(`Error: ${data.error}. Tu sesión expiró o el token es inválido.`, 'red');
-                cerrarSesion(); // Forzar logout si el token ya no sirve
-            }
-        } catch (error) {
-            mostrarMensaje('Error de conexión', 'red');
-        }
-    }
-
-    // Funciones de utilidad visual
-    function mostrarPanelUsuario() {
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('user-section').style.display = 'block';
-    }
-
-    function mostrarMensaje(texto, color) {
-        const divMensaje = document.getElementById('mensaje');
-        divMensaje.textContent = texto;
-        divMensaje.style.background = color === 'green' ? '#d4edda' : color === 'red' ? '#f8d7da' : '#cce5ff';
-        divMensaje.style.color = color === 'green' ? '#155724' : color === 'red' ? '#721c24' : '#004085';
-        divMensaje.style.display = 'block';
-        setTimeout(() => divMensaje.style.display = 'none', 4000);
-    }
-
-// =================================================================
-// LOGIC PARA EL BOTÓN DE LOGOUT (VERSIÓN SÍNCRONA OBLIGATORIA)
-// =================================================================
-const botonLogout = document.querySelector('.logout');
-
-if (botonLogout) {
-    // Le agregamos 'async' a la función del click
-    botonLogout.addEventListener('click', async (e) => {
-        // Evita que la página haga cosas raras o se recargue antes de tiempo
-        e.preventDefault(); 
-
-        const correoUsuario = localStorage.getItem('correoActual') || 'balderrama@gma';
-
-        try {
-            // EL AWAIT AQUÍ ES CLAVE: Detiene el código hasta que el backend inserte el log
-            const respuesta = await fetch(`${URL_BACKEND}/api/logout`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ correo: correoUsuario })
-            });
-
-            const resultadoJson = await respuesta.json();
-            console.log('Servidor respondió:', resultadoJson);
-
-        } catch (error) {
-            console.error('Error al registrar log de logout:', error);
-        }
-
-        // RECIÉN CUANDO EL SERVIDOR CONTESTA, limpiamos la sesión y reiniciamos
-        localStorage.clear();
-        alert('Sesión cerrada con éxito');
-        window.location.reload();
-    });
-}
-
-
 </script>
-
 </body>
 </html>

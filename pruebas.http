@@ -1,10 +1,10 @@
 ### 1. Registrar usuario normal (SIN SEGURIDAD - APARTADO 2)
-POST https://improved-space-invention-69ww9qjrprq4frvx9-3000.app.github.dev/usuarios
+POST https://literate-space-guide-q76qvxvw99673xgpj-3000.app.github.dev/usuarios
 Content-Type: application/json
 
 {
-  "nombre": "log",
-  "correo": "prueba@gmail.com",
+  "nombre": "new1",
+  "correo": "new1@gmail.com",
   "password": "123456"
 }
 
@@ -79,4 +79,13 @@ Content-Type: application/json
 
 {
     "correo": "seto@ejemplo.com"
+}
+###
+POST http://127.0.0.1:3000/api/reset-password
+Content-Type: application/json
+
+{
+    "correo": "seto@ejemplo.com",
+    "token": "992521",
+    "nuevaPassword": "manzana"
 }
