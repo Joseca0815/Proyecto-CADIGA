@@ -9,7 +9,7 @@ const { pool } = require('./db');
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+app.use(express.static(__dirname));
 const JWT_SECRET = process.env.JWT_SECRET || 'mi_firma_secreta_super_segura';
 
 // ==========================================
@@ -249,24 +249,25 @@ app.listen(PORT, () => {
 });
 
 
+// =================================================================
+// ENDPOINT: REGISTRAR LOGOUT EN AUDITORÍA
+// =================================================================
 app.post('/api/logout', async (req, res) => {
-    const { correo } = req.body; // El frontend debería enviar el correo del usuario que cierra sesión
-    const ipCliente = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+    const { correo } = req.body;
+const ipCliente = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
 
     try {
-        if (correo) {
-            // 🟢 GUARDAR LOG DE LOGOUT
-            await pool.execute(
-                'INSERT INTO logs_acceso (correo, accion, resultado, ip) VALUES (?, ?, ?, ?)', 
-                [correo, 'logout', 'EXITOSO', ipCliente]
-            );
-        }
-        res.json({ mensaje: "Sesión cerrada correctamente" });
+        // Registrar la salida en la tabla de auditoría
+        await pool.execute(
+            'INSERT INTO logs_acceso (correo, accion, resultado, ip) VALUES (?, ?, ?, ?)', 
+            [correo || 'desconocido', 'logout', 'EXITOSO', ipCliente]
+        );
+        res.json({ mensaje: "Sesión cerrada correctamente en auditoría" });
     } catch (error) {
-        res.status(500).json({ error: "Error al registrar salida", detalles: error.message });
+        console.error(error);
+        res.status(500).json({ error: "Error al registrar logout" });
     }
 });
-
 // =================================================================
 // VARIABLE GLOBAL PARA ALMACENAR LOS TOKENS TEMPORALES
 // =================================================================
@@ -316,3 +317,47 @@ app.post('/api/forgot-password', async (req, res) => {
 
 // Compartimos la variable en el entorno global para usarla en el Issue 4 m谩s adelante
 global.tokensRecuperacion = tokensRecuperacion;
+
+// =================================================================
+// ENDPOINT: RESTABLECER CONTRASEÑA CON TOKEN (ISSUE 4)
+// =================================================================
+app.post('/api/reset-password', async (req, res) => {
+    const { correo, token, nuevaPassword } = req.body;
+    const ipCliente = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+
+    try {
+        // 1. Validar que tengamos un token guardado para este correo
+        const tokenGuardado = tokensRecuperacion[correo];
+
+        if (!tokenGuardado || tokenGuardado !== token.trim()) {
+            // Guardar log de intento fallido
+            await pool.execute(
+                'INSERT INTO logs_acceso (correo, accion, resultado, ip) VALUES (?, ?, ?, ?)', 
+                [correo || 'desconocido', 'cambio_contrasenia', 'FALLIDO_TOKEN_INVALIDO', ipCliente]
+            );
+            return res.status(400).json({ error: "El código de verificación es incorrecto o ha expirado" });
+        }
+
+        // 2. Encriptar la nueva contraseña con Bcrypt (Seguridad obligatoria)
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(nuevaPassword, saltRounds);
+
+        // 3. Actualizar la contraseña en la base de datos
+        await pool.execute('UPDATE usuarios SET password = ? WHERE correo = ?', [hashedPassword, correo]);
+
+        // 4. Limpiar/Eliminar el token usado para que no se pueda volver a usar
+        delete tokensRecuperacion[correo];
+
+        // 5. Guardar log de éxito
+        await pool.execute(
+            'INSERT INTO logs_acceso (correo, accion, resultado, ip) VALUES (?, ?, ?, ?)', 
+            [correo, 'cambio_contrasenia', 'EXITOSO', ipCliente]
+        );
+
+        res.json({ mensaje: "Contraseña actualizada con éxito. Ya puedes iniciar sesión." });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error interno al actualizar la contraseña" });
+    }
+});

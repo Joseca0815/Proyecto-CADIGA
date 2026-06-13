@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistema CADIGA</title>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; }
+        .navbar { background-color: #343a40; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
+        .navbar h1 { margin: 0; font-size: 20px; }
+        .btn-logout { background-color: #dc3545; color: white; border: none; padding: 8px 16px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 14px; }
+        .btn-logout:hover { background-color: #bd2130; }
+        .content { padding: 40px; max-width: 800px; margin: 0 auto; }
+        .card { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+        h2 { color: #28a745; margin-top: 0; }
+    </style>
+</head>
+<body>
+
+    <div class="navbar">
+        <h1>Proyecto CADIGA - Panel de Control</h1>
+        <button class="btn-logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+    </div>
+
+    <div class="content">
+        <div class="card">
+            <h2>¡Bienvenido al Sistema!</h2>
+            <p>Has iniciado sesión correctamente. Las credenciales ingresadas fueron validadas de forma segura mediante <strong>Bcrypt</strong> contra la base de datos MySQL.</p>
+            <p style="color: #6c757d; font-size: 14px;">Todos los accesos y cambios de contraseña quedan auditados en la tabla <code>logs_acceso</code>.</p>
+        </div>
+    </div>
+
+    <script>
+      async function cerrarSesion() {
+    const correo = localStorage.getItem('correoUsuario');
+
+    try {
+        // Le avisamos al backend para que guarde el log de la salida
+        await fetch('/api/logout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ correo })
+        });
+    } catch (err) {
+        console.error("No se pudo registrar el logout en el servidor", err);
+    }
+
+    // Borramos los datos locales y regresamos al login
+    localStorage.clear();
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+}
+    </script>
+</body>
+</html>
