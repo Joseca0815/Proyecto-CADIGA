@@ -266,3 +266,53 @@ app.post('/api/logout', async (req, res) => {
         res.status(500).json({ error: "Error al registrar salida", detalles: error.message });
     }
 });
+
+// =================================================================
+// VARIABLE GLOBAL PARA ALMACENAR LOS TOKENS TEMPORALES
+// =================================================================
+const tokensRecuperacion = {}; // Guarda pares de { correo: token } en memoria
+
+// =================================================================
+// ENDPOINT: SOLICITAR RECUPERACI脫N DE CONTRASE脩A (ISSUE 3)
+// =================================================================
+app.post('/api/forgot-password', async (req, res) => {
+    const { correo } = req.body;
+    const ipCliente = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '127.0.0.1';
+
+    try {
+        // 1. Validar que el usuario exista en MySQL
+        const [usuarios] = await pool.execute('SELECT * FROM usuarios WHERE correo = ?', [correo]);
+
+        if (usuarios.length === 0) {
+            return res.status(404).json({ error: "El correo electr贸nico no est谩 registrado" });
+        }
+
+        // 2. GENERAR TOKEN SIMPLE (N煤mero aleatorio de 6 d铆gitos) - Alcance Reducido
+        const tokenSimple = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Guardamos el token asociado al correo para que el Issue 4 lo pueda validar
+        tokensRecuperacion[correo] = tokenSimple;
+
+        // 3. SIMULAR ENV脥O DE CORREO POR CONSOLA/LOG - Alcance Reducido
+        console.log("\n========================================================");
+        console.log(` [SIMULACIÓN DE CORREO ENVIADO A: ${correo}]`);
+        console.log(`Asunto: Recuperación de contraseña`);
+        console.log(`Mensaje: Tu codigo de verificación temporal es: ${tokenSimple}`);
+        console.log("========================================================\n");
+
+        // 4. GUARDAR EN LA TABLA DE LOGS AUTOM脕TICAMENTE (Auditor铆a obligatoria)
+        await pool.execute(
+            'INSERT INTO logs_acceso (correo, accion, resultado, ip) VALUES (?, ?, ?, ?)', 
+            [correo, 'solicitud_recuperacion', 'EXITOSO', ipCliente]
+        );
+
+        res.json({ mensaje: "Codigo de recuperación generado e impreso en consola con exito." });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Error interno al procesar la solicitud" });
+    }
+});
+
+// Compartimos la variable en el entorno global para usarla en el Issue 4 m谩s adelante
+global.tokensRecuperacion = tokensRecuperacion;

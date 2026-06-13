@@ -53,3 +53,14 @@ UNLOCK TABLES;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-06-12  6:16:36
+-- 2. Crear la estructura limpia y optimizada para el sistema de logs
+CREATE TABLE logs_acceso (
+  id INT NOT NULL AUTO_INCREMENT,
+  correo VARCHAR(255) NOT NULL,
+  accion VARCHAR(100) NOT NULL,
+  resultado VARCHAR(50) NOT NULL,
+  ip VARCHAR(100) NOT NULL,
+  fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+

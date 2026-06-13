@@ -32,7 +32,7 @@ DELETE https://special-space-giggle-g46qxpxg5667c9jvp-3000.app.github.dev/usuari
 GET https://crispy-barnacle-4j96vx6wj452q6vp-3000.app.github.dev/api/usuarios-protegidos
 
 ### 5.1 Intentar registrar un usuario nuevo Seguro (Bcrypt)
-POST https://improved-space-invention-69ww9qjrprq4frvx9-3000.app.github.dev/api/secure-register
+POST https://literate-space-guide-q76qvxvw99673xgpj-3000.app.github.dev/api/secure-register
 Content-Type: application/json
 
 {
@@ -68,3 +68,15 @@ Content-Type: application/json
 
 ### Consultar los Logs (GET)
 GET http://127.0.0.1:3000/api/logs
+
+
+###Consultar los logs (GET)
+GET http://127.0.0.1:3000/api/logs
+
+###Solicitar recuperación de contraseña (Issue 3)
+POST http://127.0.0.1:3000/api/forgot-password
+Content-Type: application/json
+
+{
+    "correo": "seto@ejemplo.com"
+}
